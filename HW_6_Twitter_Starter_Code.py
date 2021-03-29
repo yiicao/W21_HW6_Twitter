@@ -1,8 +1,9 @@
 #########################################
-##### Name:                         #####
-##### Uniqname:                     #####
+##### Name:      Yi Cao             #####
+##### Uniqname:   yiicao            #####
 #########################################
 
+from requests import auth
 from requests_oauthlib import OAuth1
 import json
 import requests
@@ -97,7 +98,14 @@ def construct_unique_key(baseurl, params):
         the unique key as a string
     '''
     #TODO Implement function
-    pass
+    param_strings = []
+    connector = "_"
+    for key in params.keys():
+        param_strings.append(f'{key}_{params[key]}')
+    param_strings.sort()
+    unique_key = baseurl + connector + connector.join(param_strings)
+    return unique_key
+
 
 
 def make_request(baseurl, params):
@@ -117,7 +125,10 @@ def make_request(baseurl, params):
         a dictionary
     '''
     #TODO Implement function
-    pass
+    if params:
+        return requests.get(baseurl, params, auth=oauth).json()
+    else:
+        return requests.get(baseurl, auth=oauth).json()
 
 
 def make_request_with_cache(baseurl, hashtag, count):
@@ -149,7 +160,16 @@ def make_request_with_cache(baseurl, hashtag, count):
         JSON
     '''
     #TODO Implement function
-    pass
+    params = {'q': hashtag, 'count': count}
+    request_key = construct_unique_key(baseurl, params)
+    if request_key in CACHE_DICT.keys():
+        print("fetching cached data", request_key)
+        return CACHE_DICT[request_key]
+    else:
+        print("making new request", request_key)
+        CACHE_DICT[request_key] = make_request(baseurl, params)
+        save_cache(CACHE_DICT)
+        return CACHE_DICT[request_key]
 
 
 def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
@@ -172,7 +192,15 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
 
     '''
     # TODO: Implement function 
-    pass
+    cohashtags = []
+    for data in tweet_data["statuses"]:
+        for hashtag in data["entities"]["hashtags"]:
+            if hashtag.lower() != hashtag_to_ignore.lower():
+                cohashtags.append(hashtag)
+    
+    most_cohashtag = max(set(cohashtags), key=cohashtags.count)
+    return most_cohashtag
+
     ''' Hint: In case you're confused about the hashtag_to_ignore 
     parameter, we want to ignore the hashtag we queried because it would 
     definitely be the most occurring hashtag, and we're trying to find 
