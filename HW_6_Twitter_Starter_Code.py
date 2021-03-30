@@ -195,8 +195,8 @@ def find_most_common_cooccurring_hashtag(tweet_data, hashtag_to_ignore):
     cohashtags = []
     for data in tweet_data["statuses"]:
         for hashtag in data["entities"]["hashtags"]:
-            if hashtag.lower() != hashtag_to_ignore.lower():
-                cohashtags.append(hashtag)
+            if "#" + hashtag["text"].lower() != hashtag_to_ignore.lower():
+                cohashtags.append(hashtag["text"])
     
     most_cohashtag = max(set(cohashtags), key=cohashtags.count)
     return most_cohashtag
